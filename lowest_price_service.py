@@ -54,16 +54,21 @@ def save_to_history(company, price):
         except FileNotFoundError:
             history = []
 
-        # Add new entry
-        history.append({
+        # Check if the new entry is already in the history
+        new_entry = {
             "company": company,
             "price": price,
-            "timestamp": datetime.now().isoformat()
-        })
+            "date": datetime.now().date().isoformat()
+        }
 
-        # Save updated history
-        with open(HISTORY_FILE, "w") as file:
-            json.dump(history, file, indent=4)
+        if new_entry not in history:
+            history.append(new_entry)
+
+            # Save updated history
+            with open(HISTORY_FILE, "w") as file:
+                json.dump(history, file, indent=4)
+        else:
+            logging.info("The fetched result is already in the history. No new entry added.")
     except Exception as e:
         logging.error(f"Failed to save history: {e}")
 
@@ -72,7 +77,7 @@ def view_history():
         with open(HISTORY_FILE, "r") as file:
             history = json.load(file)
             for entry in history:
-                print(f"{entry['timestamp']}: {entry['company']} - ${entry['price']:.2f}")
+                print(f"{entry['date']}: {entry['company']} - ${entry['price']:.2f}")
     except FileNotFoundError:
         print("No history found.")
     except Exception as e:
