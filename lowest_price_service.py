@@ -4,6 +4,7 @@ import argparse
 import logging
 import json
 from datetime import datetime
+from tabulate import tabulate
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -76,8 +77,12 @@ def view_history():
     try:
         with open(HISTORY_FILE, "r") as file:
             history = json.load(file)
-            for entry in history:
-                logging.info("%s: %s - $%.2f", entry['date'], entry['company'], entry['price'])
+            if history:
+                table = [[entry['date'], entry['company'], "$%.2f" % entry['price']] for entry in history]
+                headers = ["Date", "Company", "Price"]
+                logging.info("\n" + tabulate(table, headers, tablefmt="grid"))
+            else:
+                logging.info("No history found.")
     except FileNotFoundError:
         logging.info("No history found.")
     except Exception as e:
