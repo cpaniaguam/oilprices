@@ -7,12 +7,6 @@ This Python service fetches the main table from the [New England Oil website](ht
 - Extracts the "Company Name" and "Price" columns.
 - Identifies the company with the lowest price greater than zero.
 
-## Requirements
-- Python 3.10+
-- Required Python packages:
-  - `requests`
-  - `beautifulsoup4`
-
 ## Installation
 1. Clone this repository:
    ```bash
@@ -21,13 +15,13 @@ This Python service fetches the main table from the [New England Oil website](ht
    ```
 2. Install the required dependencies:
    ```bash
-   pip install -r requirements.txt
+   uv sync
    ```
 
 ## Usage
 Run the script to fetch the company with the lowest heating oil price greater than zero:
 ```bash
-python3 lowest_price_service.py
+uv run lowest_price_service.py
 ```
 
 ## Output
