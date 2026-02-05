@@ -1,8 +1,17 @@
 import requests
 from bs4 import BeautifulSoup
+import argparse
+import logging
+import json
+from datetime import datetime
 
-def fetch_lowest_price_provider():
-    url = "https://www.newenglandoil.com/rhodeisland/zone4.asp?x=0"
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+DEFAULT_URL = "https://www.newenglandoil.com/rhodeisland/zone4.asp?x=0"
+HISTORY_FILE = "price_history.json"
+
+def fetch_lowest_price_provider(url):
     response = requests.get(url)
     response.raise_for_status()
 
@@ -36,9 +45,55 @@ def fetch_lowest_price_provider():
 
     return lowest_price_company, lowest_price
 
-if __name__ == "__main__":
+def save_to_history(company, price):
     try:
-        company, price = fetch_lowest_price_provider()
-        print(f"The company with the lowest price greater than zero is {company} with a price of ${price:.2f}")
+        # Load existing history
+        try:
+            with open(HISTORY_FILE, "r") as file:
+                history = json.load(file)
+        except FileNotFoundError:
+            history = []
+
+        # Add new entry
+        history.append({
+            "company": company,
+            "price": price,
+            "timestamp": datetime.now().isoformat()
+        })
+
+        # Save updated history
+        with open(HISTORY_FILE, "w") as file:
+            json.dump(history, file, indent=4)
     except Exception as e:
-        print(f"An error occurred: {e}")
+        logging.error(f"Failed to save history: {e}")
+
+def view_history():
+    try:
+        with open(HISTORY_FILE, "r") as file:
+            history = json.load(file)
+            for entry in history:
+                print(f"{entry['timestamp']}: {entry['company']} - ${entry['price']:.2f}")
+    except FileNotFoundError:
+        print("No history found.")
+    except Exception as e:
+        logging.error(f"Failed to read history: {e}")
+
+def main():
+    parser = argparse.ArgumentParser(description="Fetch the company with the lowest heating oil price greater than zero.")
+    parser.add_argument("--url", type=str, default=DEFAULT_URL, help="The URL of the webpage to fetch the table from. Defaults to the Zone 4 Rhode Island heating oil prices page.")
+    parser.add_argument("--history", action="store_true", help="View the history of best prices.")
+    args = parser.parse_args()
+
+    if args.history:
+        view_history()
+        return
+
+    try:
+        company, price = fetch_lowest_price_provider(args.url)
+        logging.info(f"The company with the lowest price greater than zero is {company} with a price of ${price:.2f}")
+        save_to_history(company, price)
+    except Exception as e:
+        logging.error(f"An error occurred: {e}")
+
+if __name__ == "__main__":
+    main()
