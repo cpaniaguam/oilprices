@@ -77,11 +77,11 @@ def view_history():
         with open(HISTORY_FILE, "r") as file:
             history = json.load(file)
             for entry in history:
-                print(f"{entry['date']}: {entry['company']} - ${entry['price']:.2f}")
+                logging.info("%s: %s - $%.2f", entry['date'], entry['company'], entry['price'])
     except FileNotFoundError:
-        print("No history found.")
+        logging.info("No history found.")
     except Exception as e:
-        logging.error(f"Failed to read history: {e}")
+        logging.error("Failed to read history: %s", e)
 
 def main():
     parser = argparse.ArgumentParser(description="Fetch the company with the lowest heating oil price greater than zero.")
@@ -95,7 +95,7 @@ def main():
 
     try:
         company, price = fetch_lowest_price_provider(args.url)
-        logging.info(f"The company with the lowest price greater than zero is {company} with a price of ${price:.2f}")
+        logging.info(f"The company with the lowest price is {company} with a price of ${price:.2f}")
         save_to_history(company, price)
     except Exception as e:
         logging.error(f"An error occurred: {e}")
