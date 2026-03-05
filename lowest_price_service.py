@@ -7,7 +7,11 @@ from datetime import datetime
 from tabulate import tabulate
 
 # Configure logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
 
 DEFAULT_URL = "https://www.newenglandoil.com/rhodeisland/zone4.asp?x=0"
 HISTORY_FILE = "price_history.json"
