@@ -6,3 +6,6 @@ graph:
 
 rungraph:
 	uv run lowest_price_service.py && uv run graph.py
+
+app:
+	uv run streamlit run app.py
