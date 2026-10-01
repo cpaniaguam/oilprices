@@ -1,19 +1,19 @@
 import argparse
 import json
-from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
 
 
+def latest_price_per_day(records):
+    """Map each date to the last price recorded that day (history is append-only)."""
+    return {rec["date"]: rec["price"] for rec in records}
+
+
 def build_text_graph(records, scale=50):
-    records = sorted(records, key=lambda r: datetime.fromisoformat(r["date"]))
-    date_price_map = defaultdict(list)
-    for rec in records:
-        date_price_map[rec["date"]].append(rec["price"])
-    averages = [(date, sum(prices) / len(prices)) for date, prices in sorted(date_price_map.items())]
-    max_price = max(price for _, price in averages) or 1
-    lines = ["Average price trend:"]
-    for date, price in averages:
+    daily = sorted(latest_price_per_day(records).items())
+    max_price = max(price for _, price in daily) or 1
+    lines = ["Lowest price trend:"]
+    for date, price in daily:
         bar = "#" * int(price / max_price * scale)
         lines.append(f" {date} | {bar} {price:.3f}")
     return "\n".join(lines)
@@ -26,17 +26,15 @@ def build_matplotlib_graph(records):
         raise SystemExit(
             "matplotlib is required for --mode matplotlib; install it with `pip install matplotlib`."
         )
-    date_price_map = defaultdict(list)
-    for rec in records:
-        date_price_map[datetime.fromisoformat(rec["date"])].append(rec["price"])
-    unique_dates = sorted(date_price_map)
-    averages = [sum(prices) / len(prices) for prices in (date_price_map[dt] for dt in unique_dates)]
+    daily = latest_price_per_day(records)
+    unique_dates = sorted(datetime.fromisoformat(d) for d in daily)
+    prices = [daily[dt.date().isoformat()] for dt in unique_dates]
     fig, ax = plt.subplots()
-    ax.plot(unique_dates, averages, marker="o")
+    ax.plot(unique_dates, prices, marker="o")
     ax.set_xticks(unique_dates)
     ax.set_xticklabels([dt.strftime("%Y-%m-%d") for dt in unique_dates], rotation=45, ha="right")
-    ax.set_ylabel("Average Price")
-    ax.set_title("Average Oil Price Trend")
+    ax.set_ylabel("Lowest Price")
+    ax.set_title("Lowest Oil Price Trend")
     fig.tight_layout()
     plt.show()
 
